@@ -1,0 +1,1 @@
+. $IDF_FOLDER/export.sh
