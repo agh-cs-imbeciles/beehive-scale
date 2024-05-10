@@ -226,6 +226,7 @@
                 "/home/kmp/.arduino15/packages/esp32/hardware/esp32/2.0.16/libraries/SPIFFS/src",
                 "/home/kmp/.arduino15/packages/esp32/hardware/esp32/2.0.16/libraries/FS/src",
                 "/home/kmp/.arduino15/packages/esp32/hardware/esp32/2.0.16/libraries/WiFi/src",
+                "/home/kmp/Arduino/libraries/HX711_Arduino_Library/src",
                 "/home/kmp/Arduino/libraries/ArduinoJson-7.x/src",
                 "/home/kmp/Arduino/libraries/Vector-1.2.2/src",
                 "/home/kmp/Arduino/libraries/ESP_Mail_Client/src",
