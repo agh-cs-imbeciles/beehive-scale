@@ -1,7 +1,8 @@
 #pragma once
-#include "Configurator.hpp"
-#include "FS.h"
-#include "SPIFFS.h"
+
+#include "configurator.hpp"
+#include <FS.h>
+#include <SPIFFS.h>
 #include <Vector.h>
 
 Configurator::Configurator(const String filename)
@@ -40,7 +41,7 @@ Vector<WiFiPass> Configurator::getNetworksArray()
     array.setStorage(this->storageWiFiPass,ARR_SIZE,0);
     JsonArray jsonArray = document["networks"];
     for (int i = 0; i < jsonArray.size(); i++)
-    {   
+    {
         array.push_back(
             WiFiPass{
                 jsonArray[i]["SSID"].as<String>(),
@@ -53,8 +54,8 @@ Vector<WiFiPass> Configurator::getNetworksArray()
 }
 
 Vector<String> Configurator::getRecipients()
-{   
-    
+{
+
     Vector<String> array;
     array.setStorage(this->storageRecipients,ARR_SIZE,0);
     JsonArray jsonArray = document["recipients"];

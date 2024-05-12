@@ -1,6 +1,5 @@
+#include "mail_sender.hpp"
 #include <ESP_Mail_Client.h>
-#include "../configuration/Configurator.hpp"
-#include "MailSender.hpp"
 #include <Vector.h>
 
 MailSender::MailSender(String host, int port, String email, String password)

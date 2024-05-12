@@ -1,6 +1,7 @@
+#include "configurator.hpp"
 #include <ESP_Mail_Client.h>
-#include "../configuration/Configurator.hpp"
 #include <Vector.h>
+
 class MailSender
 {
 private:

@@ -2,8 +2,9 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HX711.h>
-#include "src/configuration/Configurator.hpp"
-#include "src/mail/MailSender.hpp"
+
+#include "src/configurator.hpp"
+#include "src/mail_sender.hpp"
 
 #define FORMAT_SPIFFS_IF_FAILED true
 #define DOUT 13
@@ -78,10 +79,13 @@ void loop()
         Serial.println(WiFi.localIP());
         previousMilis = currentMillis;
         sender->connect();
-        std::string s = std::to_string(mass).c_str();
-        s = s.substr(0, s.find(".") + 3).c_str();
-        String a = String("Masa: ") + String(s.c_str());
-        sender->setMessageContent(a);
+
+        std::string massStr = std::to_string(mass);
+        massStr = massStr.substr(0, massStr.find(".") + 3);
+        std::string mailBody = std::string();
+        mailBody.append("Masa: ").append(massStr);
+
+        sender->setMessageContent(String(mailBody.c_str()));
         sender->sendMail();
     }
 }
