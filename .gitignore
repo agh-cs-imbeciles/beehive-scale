@@ -1,0 +1,7 @@
+.env
+/build/**
+/config/esp32.json
+
+.vscode/settings.json
+.vscode/arduino.json
+.vscode/c_cpp_properties.json

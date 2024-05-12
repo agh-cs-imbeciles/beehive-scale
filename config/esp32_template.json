@@ -1,0 +1,16 @@
+{
+  "massTreshold": 50,
+  "intervalSeconds": 3600,
+  "networks": [
+    {
+      "SSID": "SSID",
+      "password": "pass"
+    }
+  ],
+  "recipients": ["mail@mail.pl"],
+  "smtpHost": "smtpHost.mail.com",
+  "smtpPort": "2137",
+  "emailLogin": "mail@mail.pl",
+  "emailPassword": "pass",
+  "ntpServer": "server"
+}
