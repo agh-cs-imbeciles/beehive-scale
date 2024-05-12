@@ -1,0 +1,6 @@
+.env
+/build/**
+/config/esp32.json
+
+.vscode/c_cpp_properties.json
+.vscode/settings.json
