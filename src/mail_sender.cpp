@@ -2,6 +2,7 @@
 #include "exception/mail_exception.hpp"
 #include <ESP_Mail_Client.h>
 #include <Vector.h>
+
 MailSender::MailSender(String host, int port, String email, String password)
 {
     session.callback(MailSender::smtpCallback);

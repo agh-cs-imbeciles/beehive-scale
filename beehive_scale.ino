@@ -8,7 +8,6 @@
 #include "src/mail_sender.hpp"
 #include "src/exception/json_exception.hpp"
 #include "src/exception/mail_exception.hpp"
-#define FORMAT_SPIFFS_IF_FAILED true
 #define DOUT 13
 #define CLK 12
 
@@ -19,6 +18,9 @@ MailSender *sender;
 unsigned long previousMilis = 0;
 unsigned long interval;
 float calibration_factor = 40000;
+double treshold;
+double hysteresis;
+bool tresholdReset = true;
 
 void setup()
 {
@@ -33,6 +35,9 @@ void setup()
         }
         configurator = new Configurator("/esp32.json");
         configurator->parse();
+        configurator->loadConfig();
+        treshold = configurator->getMassThreshold();
+        hysteresis = configurator->getHysteresisOfMass();
         for (const WiFiPass w : configurator->getNetworksArray())
         {
             wifiMulti.addAP(w.SSID.c_str(), w.password.c_str());
@@ -69,6 +74,9 @@ void setup()
     {
         Serial.println(e.what());
     }
+    catch(...){
+        Serial.println("Unknown exception in setup");
+    }
 }
 
 void loop()
@@ -77,14 +85,16 @@ void loop()
     {
         unsigned long currentMillis = millis();
 
-        if ((currentMillis - previousMilis) >= interval)
+        float mass = -scale.get_units();
+        Serial.println(mass);
+        if ((currentMillis - previousMilis) >= interval || (mass > treshold && tresholdReset))
         {
             while (wifiMulti.run() != WL_CONNECTED)
             {
                 Serial.println("WiFi not connected!");
                 delay(200);
             }
-            float mass = scale.get_units();
+            
 
             Serial.print("WiFi connected: ");
             Serial.print(WiFi.SSID());
@@ -95,7 +105,7 @@ void loop()
             previousMilis = currentMillis;
             sender->connect();
 
-            mass = -std::ceil(mass * 100.0) / 100.0;
+            mass = std::ceil(mass * 100.0) / 100.0;
             std::string massStr = std::to_string(mass);
             massStr = massStr.substr(0, massStr.find(".") + 3);
             std::string mailBody = std::string();
@@ -104,10 +114,19 @@ void loop()
             sender->setMessageContent(String(mailBody.c_str()));
             sender->sendMail();
             sender->disconnect();
+            if(mass > treshold){
+                tresholdReset = false;
+            }
+        }
+        if (mass < treshold - hysteresis){
+            tresholdReset = true;
         }
     }
     catch(MailException e){
         Serial.println(e.what());
         Serial.println("Failed to send mail");
+    }
+    catch(...){
+        Serial.println("Unknown exception in loop");
     }
 }

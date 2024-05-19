@@ -8,6 +8,102 @@
 
 #include "exception/json_exception.hpp"
 
+template <typename T>
+T Configurator::throwJsonExceptionIfWrongField(JsonVariant value, String fieldName)
+{
+    T v = value.as<T>();
+    String message = "Wrong value of " + fieldName;
+    if (!v)
+    {
+        throw JsonException(message.c_str());
+    }
+    return v;
+}
+
+void Configurator::loadMassThreshold()
+{
+    String s = "massTreshold";
+    this->massThreshold = throwJsonExceptionIfWrongField<double>(document[s], s);
+}
+
+void Configurator::loadHysteresisOfMass()
+{
+    String s = "hysteresisOfMass";
+    this->hysteresisOfMass = throwJsonExceptionIfWrongField<double>(document[s], s);
+}
+
+void Configurator::loadIntervalSeconds()
+{
+    String s = "intervalSeconds";
+    this->intervalSeconds = throwJsonExceptionIfWrongField<long>(document[s], s);
+}
+
+void Configurator::loadNetworksArray()
+{
+    Vector<WiFiPass> array;
+    array.setStorage(this->storageWiFiPass, ARR_SIZE, 0);
+    String s = "networks";
+    JsonArray jsonArray = throwJsonExceptionIfWrongField<JsonArray>(document[s], s);
+
+    for (int i = 0; i < jsonArray.size(); i++)
+    {
+        s = "ssid";
+        String ssid = throwJsonExceptionIfWrongField<const char*>(jsonArray[i][s], s);
+        s = "password";
+        String password = throwJsonExceptionIfWrongField<const char*>(jsonArray[i][s], s);
+        array.push_back(
+            WiFiPass{
+                ssid,
+                password
+            });
+    }
+    this->networksArray = array;
+}
+
+void Configurator::loadRecipients()
+{
+    Vector<String> array;
+    array.setStorage(this->storageRecipients, ARR_SIZE, 0);
+    String s = "recipients";
+    JsonArray jsonArray = throwJsonExceptionIfWrongField<JsonArray>(document[s], s);
+    for (int i = 0; i < jsonArray.size(); i++)
+    {
+        String recipient = throwJsonExceptionIfWrongField<const char*>(jsonArray[i], s);
+        array.push_back(recipient);
+    }
+    this->recipients = array;
+}
+
+void Configurator::loadSmtpHost()
+{
+    String s = "smtpHost";
+    this->smtpHost = throwJsonExceptionIfWrongField<const char*>(document[s], s);
+}
+
+void Configurator::loadSmtpPort()
+{
+    String s = "smtpPort";
+    this->smtpPort = throwJsonExceptionIfWrongField<int>(document[s], s);
+}
+
+void Configurator::loadEmailLogin()
+{
+    String s = "emailLogin";
+    this->emailLogin = throwJsonExceptionIfWrongField<const char*>(document[s], s);
+}
+
+void Configurator::loadEmailPassword()
+{
+    String s = "emailPassword";
+    this->emailPassword = throwJsonExceptionIfWrongField<const char*>(document[s], s);
+}
+
+void Configurator::loadNtpServer()
+{
+    String s = "ntpServer";
+    this->ntpServer = throwJsonExceptionIfWrongField<const char*>(document[s], s);
+}
+
 Configurator::Configurator(const String filename)
 {
     this->filename = filename;
@@ -29,92 +125,66 @@ void Configurator::parse()
     file.close();
 }
 
+void Configurator::loadConfig()
+{
+    this->loadMassThreshold();
+    this->loadHysteresisOfMass();
+    this->loadIntervalSeconds();
+    this->loadNetworksArray();
+    this->loadRecipients();
+    this->loadSmtpHost();
+    this->loadSmtpPort();
+    this->loadEmailLogin();
+    this->loadEmailPassword();
+    this->loadNtpServer();
+}
+
 double Configurator::getMassThreshold()
 {
-    String s = "massTreshold";
-    return throwJsonExceptionIfWrongField<double>(document[s], s);
+    return this->massThreshold;
+}
+
+double Configurator::getHysteresisOfMass()
+{
+    return this->hysteresisOfMass;
 }
 
 long Configurator::getIntervalSeconds()
 {
-    String s = "intervalSeconds";
-    return throwJsonExceptionIfWrongField<long>(document[s], s);
+    return this->intervalSeconds;
 }
 
 Vector<WiFiPass> Configurator::getNetworksArray()
 {
-    Vector<WiFiPass> array;
-    array.setStorage(this->storageWiFiPass, ARR_SIZE, 0);
-    String s = "networks";
-    JsonArray jsonArray = throwJsonExceptionIfWrongField<JsonArray>(document[s], s);
-
-    for (int i = 0; i < jsonArray.size(); i++)
-    {
-        s = "ssid";
-        String ssid = throwJsonExceptionIfWrongField<String>(jsonArray[i][s], s);
-        s = "password";
-        String password = throwJsonExceptionIfWrongField<String>(jsonArray[i][s], s);
-        array.push_back(
-            WiFiPass{
-                ssid,
-                password
-            });
-    }
-    return array;
+    return this->networksArray;
 }
 
 Vector<String> Configurator::getRecipients()
 {
-    Vector<String> array;
-    array.setStorage(this->storageRecipients, ARR_SIZE, 0);
-    String s = "recipients";
-    JsonArray jsonArray = throwJsonExceptionIfWrongField<JsonArray>(document[s], s);
-    for (int i = 0; i < jsonArray.size(); i++)
-    {
-        String recipient = throwJsonExceptionIfWrongField<String>(jsonArray[i], s);
-        array.push_back(recipient);
-    }
-    return array;
+    return this->recipients;
 }
 
 String Configurator::getSmtpHost()
 {
-    String s = "smtpHost";
-    return throwJsonExceptionIfWrongField<String>(document[s], s);
+    return this->smtpHost;
 }
 
 int Configurator::getSmtpPort()
 {
-    String s = "smtpPort";
-    return throwJsonExceptionIfWrongField<int>(document[s], s);
+    return this->smtpPort;
 }
 
 String Configurator::getEmailLogin()
 {
-    String s = "emailLogin";
-    return throwJsonExceptionIfWrongField<String>(document[s], s);
+    return this->emailLogin;
 }
 
 String Configurator::getEmailPassword()
 {
-    String s = "emailPassword";
-    return throwJsonExceptionIfWrongField<String>(document[s], s);
+    return this->emailPassword;
 }
 
 String Configurator::getNtpServer()
 {
-    String s = "ntpServer";
-    return throwJsonExceptionIfWrongField<String>(document[s], s);
-}
-
-template <typename T>
-T Configurator::throwJsonExceptionIfWrongField(JsonVariant value, String fieldName)
-{
-    T v = value.as<T>();
-    String message = "Wrong value of " + fieldName;
-    if (!v)
-    {
-        throw JsonException(message.c_str());
-    }
-    return v;
+    return this->ntpServer;
 }
