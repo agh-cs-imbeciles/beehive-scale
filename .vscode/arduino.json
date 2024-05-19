@@ -1,5 +1,15 @@
 {
     "port": "/dev/ttyUSB0",
     "prebuild": "./prebuild.sh",
-    "board": "esp32:esp32:esp32"
+    "board": "esp32:esp32:esp32",
+    "sketch": "beehive_scale.ino",
+    "output": "./build",
+    "configuration": "JTAGAdapter=default,PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=info,EraseFlash=none",
+    "buildPreferences": [
+        [
+            "compiler.cpp.extra_flags",
+            "-fexceptions"
+        ]
+    ],
+    "programmer": "esptool"
 }

@@ -3,7 +3,7 @@
   "intervalSeconds": 3600,
   "networks": [
     {
-      "SSID": "SSID",
+      "ssid": "ssid",
       "password": "pass"
     }
   ],
