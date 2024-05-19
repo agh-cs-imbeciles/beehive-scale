@@ -6,8 +6,8 @@
 
 #include "src/configurator.hpp"
 #include "src/mail_sender.hpp"
-#include "src/error/json_error.hpp"
-
+#include "src/exception/json_exception.hpp"
+#include "src/exception/mail_exception.hpp"
 #define FORMAT_SPIFFS_IF_FAILED true
 #define DOUT 13
 #define CLK 12
@@ -22,7 +22,8 @@ float calibration_factor = 40000;
 
 void setup()
 {
-    try{
+    try
+    {
         Serial.begin(115200);
         delay(2000);
         if (!SPIFFS.begin(true))
@@ -54,46 +55,59 @@ void setup()
         sender->configureNtpServer(configurator->getNtpServer());
         interval = configurator->getIntervalSeconds() * 1000;
         sender->connect();
+        sender->disconnect();
         scale.begin(DOUT, CLK);
         scale.set_scale(calibration_factor);
         scale.tare();
     }
-    catch(JsonException e){
+    catch (JsonException e)
+    {
         Serial.println(e.what());
         Serial.println("Failed to load configuration");
+    }
+    catch (MailException e)
+    {
+        Serial.println(e.what());
     }
 }
 
 void loop()
 {
-    // Serial.println(configurator->getIntervalSeconds());
-    Serial.println(scale.get_units(), 1);
-    unsigned long currentMillis = millis();
-    if ((currentMillis - previousMilis) >= interval)
+    try
     {
-        while (wifiMulti.run() != WL_CONNECTED)
+        unsigned long currentMillis = millis();
+
+        if ((currentMillis - previousMilis) >= interval)
         {
-            Serial.println("WiFi not connected!");
-            delay(200);
+            while (wifiMulti.run() != WL_CONNECTED)
+            {
+                Serial.println("WiFi not connected!");
+                delay(200);
+            }
+            float mass = scale.get_units();
+
+            Serial.print("WiFi connected: ");
+            Serial.print(WiFi.SSID());
+            Serial.print(" ");
+            Serial.print(WiFi.RSSI());
+            Serial.print(" ");
+            Serial.println(WiFi.localIP());
+            previousMilis = currentMillis;
+            sender->connect();
+
+            mass = -std::ceil(mass * 100.0) / 100.0;
+            std::string massStr = std::to_string(mass);
+            massStr = massStr.substr(0, massStr.find(".") + 3);
+            std::string mailBody = std::string();
+            mailBody.append("Masa: ").append(massStr);
+
+            sender->setMessageContent(String(mailBody.c_str()));
+            sender->sendMail();
+            sender->disconnect();
         }
-        float mass = scale.get_units();
-
-        Serial.print("WiFi connected: ");
-        Serial.print(WiFi.SSID());
-        Serial.print(" ");
-        Serial.print(WiFi.RSSI());
-        Serial.print(" ");
-        Serial.println(WiFi.localIP());
-        previousMilis = currentMillis;
-        sender->connect();
-
-        mass = -std::ceil(mass * 100.0) / 100.0;
-        std::string massStr = std::to_string(mass);
-        massStr = massStr.substr(0, massStr.find(".") + 3);
-        std::string mailBody = std::string();
-        mailBody.append("Masa: ").append(massStr);
-
-        sender->setMessageContent(String(mailBody.c_str()));
-        sender->sendMail();
+    }
+    catch(MailException e){
+        Serial.println(e.what());
+        Serial.println("Failed to send mail");
     }
 }

@@ -6,7 +6,7 @@
 #include <Vector.h>
 #include <type_traits>
 
-#include "error/json_error.hpp"
+#include "exception/json_exception.hpp"
 
 Configurator::Configurator(const String filename)
 {
@@ -57,7 +57,8 @@ Vector<WiFiPass> Configurator::getNetworksArray()
         array.push_back(
             WiFiPass{
                 ssid,
-                password});
+                password
+            });
     }
     return array;
 }
@@ -108,7 +109,7 @@ String Configurator::getNtpServer()
 
 template <typename T>
 T Configurator::throwJsonExceptionIfWrongField(JsonVariant value, String fieldName)
-{   
+{
     T v = value.as<T>();
     String message = "Wrong value of " + fieldName;
     if (!v)
