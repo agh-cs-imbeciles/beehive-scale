@@ -4,6 +4,9 @@
 #include <FS.h>
 #include <SPIFFS.h>
 #include <Vector.h>
+#include <type_traits>
+
+#include "error/json_error.hpp"
 
 Configurator::Configurator(const String filename)
 {
@@ -16,74 +19,101 @@ void Configurator::parse()
 
     if (!file || file.isDirectory())
     {
-        return;
+        throw JsonException("Failed to open a file or file is directory");
     }
-    if (deserializeJson(document, file) != DeserializationError::Ok)
+    DeserializationError err;
+    if ((err = deserializeJson(document, file)) != DeserializationError::Ok)
     {
-        return;
+        throw JsonException("Failed to serialize json file");
     }
     file.close();
 }
 
 double Configurator::getMassThreshold()
 {
-    return document["massTreshold"].as<double>();
+    String s = "massTreshold";
+    return throwJsonExceptionIfWrongField<double>(document[s], s);
 }
 
 long Configurator::getIntervalSeconds()
 {
-    return document["intervalSeconds"].as<long>();
+    String s = "intervalSeconds";
+    return throwJsonExceptionIfWrongField<long>(document[s], s);
 }
 
 Vector<WiFiPass> Configurator::getNetworksArray()
 {
     Vector<WiFiPass> array;
-    array.setStorage(this->storageWiFiPass,ARR_SIZE,0);
-    JsonArray jsonArray = document["networks"];
+    array.setStorage(this->storageWiFiPass, ARR_SIZE, 0);
+    String s = "networks";
+    JsonArray jsonArray = throwJsonExceptionIfWrongField<JsonArray>(document[s], s);
+
     for (int i = 0; i < jsonArray.size(); i++)
     {
+        s = "ssid";
+        String ssid = throwJsonExceptionIfWrongField<String>(jsonArray[i][s], s);
+        s = "password";
+        String password = throwJsonExceptionIfWrongField<String>(jsonArray[i][s], s);
         array.push_back(
             WiFiPass{
-                jsonArray[i]["SSID"].as<String>(),
-                jsonArray[i]["password"].as<String>()
-            }
-        );
+                ssid,
+                password});
     }
-    Serial.println(array.size());
     return array;
 }
 
 Vector<String> Configurator::getRecipients()
 {
-
     Vector<String> array;
-    array.setStorage(this->storageRecipients,ARR_SIZE,0);
-    JsonArray jsonArray = document["recipients"];
+    array.setStorage(this->storageRecipients, ARR_SIZE, 0);
+    String s = "recipients";
+    JsonArray jsonArray = throwJsonExceptionIfWrongField<JsonArray>(document[s], s);
     for (int i = 0; i < jsonArray.size(); i++)
     {
-        Serial.println(jsonArray[i].as<String>());
-        array.push_back(jsonArray[i].as<String>());
-        Serial.println(array[0]);
+        String recipient = throwJsonExceptionIfWrongField<String>(jsonArray[i], s);
+        array.push_back(recipient);
     }
     return array;
 }
 
-String Configurator::getSmtpHost(){
-    return document["smtpHost"];
+String Configurator::getSmtpHost()
+{
+    String s = "smtpHost";
+    return throwJsonExceptionIfWrongField<String>(document[s], s);
 }
 
-int Configurator::getSmtpPort(){
-    return document["smtpPort"];
+int Configurator::getSmtpPort()
+{
+    String s = "smtpPort";
+    return throwJsonExceptionIfWrongField<int>(document[s], s);
 }
 
-String Configurator::getEmailLogin(){
-    return document["emailLogin"];
+String Configurator::getEmailLogin()
+{
+    String s = "emailLogin";
+    return throwJsonExceptionIfWrongField<String>(document[s], s);
 }
 
-String Configurator::getEmailPassword(){
-    return document["emailPassword"];
+String Configurator::getEmailPassword()
+{
+    String s = "emailPassword";
+    return throwJsonExceptionIfWrongField<String>(document[s], s);
 }
 
-String Configurator::getNtpServer(){
-    return document["ntpServer"];
+String Configurator::getNtpServer()
+{
+    String s = "ntpServer";
+    return throwJsonExceptionIfWrongField<String>(document[s], s);
+}
+
+template <typename T>
+T Configurator::throwJsonExceptionIfWrongField(JsonVariant value, String fieldName)
+{   
+    T v = value.as<T>();
+    String message = "Wrong value of " + fieldName;
+    if (!v)
+    {
+        throw JsonException(message.c_str());
+    }
+    return v;
 }

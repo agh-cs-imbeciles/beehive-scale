@@ -19,6 +19,9 @@ private:
     JsonDocument document;
     String storageRecipients[ARR_SIZE];
     WiFiPass storageWiFiPass[ARR_SIZE];
+    
+    template <typename T>
+    T throwJsonExceptionIfWrongField(JsonVariant value, String fieldName);
 
 public:
     Configurator(const String filename);
