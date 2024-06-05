@@ -2,11 +2,12 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HX711.h>
+#include "ArduinoJson.h"
 
 #include "src/configurator.hpp"
 #include "src/mail_sender.hpp"
-
-#define FORMAT_SPIFFS_IF_FAILED true
+#include "src/exception/json_exception.hpp"
+#include "src/exception/mail_exception.hpp"
 #define DOUT 13
 #define CLK 12
 
@@ -17,75 +18,115 @@ MailSender *sender;
 unsigned long previousMilis = 0;
 unsigned long interval;
 float calibration_factor = 40000;
+double treshold;
+double hysteresis;
+bool tresholdReset = true;
 
 void setup()
 {
-    Serial.begin(115200);
-    if (!SPIFFS.begin(true))
+    try
     {
-        Serial.println("SPIFFS Mount Failed");
-        return;
+        Serial.begin(115200);
+        delay(2000);
+        if (!SPIFFS.begin(true))
+        {
+            Serial.println("SPIFFS Mount Failed");
+            return;
+        }
+        configurator = new Configurator("/esp32.json");
+        configurator->parse();
+        configurator->loadConfig();
+        treshold = configurator->getMassThreshold();
+        hysteresis = configurator->getHysteresisOfMass();
+        for (const WiFiPass w : configurator->getNetworksArray())
+        {
+            wifiMulti.addAP(w.SSID.c_str(), w.password.c_str());
+        }
+        if (wifiMulti.run() == WL_CONNECTED)
+        {
+            Serial.print("WiFi connected: ");
+            Serial.print(WiFi.SSID());
+            Serial.print(" ");
+            Serial.print(WiFi.RSSI());
+            Serial.print(" ");
+            Serial.println(WiFi.localIP());
+        }
+        sender = new MailSender(
+            configurator->getSmtpHost(),
+            configurator->getSmtpPort(),
+            configurator->getEmailLogin(),
+            configurator->getEmailPassword());
+        sender->setMessageHeaders("ESPWaga", configurator->getRecipients());
+        sender->configureNtpServer(configurator->getNtpServer());
+        interval = configurator->getIntervalSeconds() * 1000;
+        sender->connect();
+        sender->disconnect();
+        scale.begin(DOUT, CLK);
+        scale.set_scale(calibration_factor);
+        scale.tare();
     }
-    configurator = new Configurator("/config.json");
-    configurator->parse();
-    for (const WiFiPass w : configurator->getNetworksArray())
+    catch (JsonException e)
     {
-        wifiMulti.addAP(w.SSID.c_str(), w.password.c_str());
+        Serial.println(e.what());
+        Serial.println("Failed to load configuration");
     }
-    if (wifiMulti.run() == WL_CONNECTED)
+    catch (MailException e)
     {
-        Serial.print("WiFi connected: ");
-        Serial.print(WiFi.SSID());
-        Serial.print(" ");
-        Serial.print(WiFi.RSSI());
-        Serial.print(" ");
-        Serial.println(WiFi.localIP());
+        Serial.println(e.what());
     }
-    Serial.println(configurator->getRecipients()[0]);
-    Serial.println(configurator->getRecipients()[1]);
-    sender = new MailSender(
-        configurator->getSmtpHost(),
-        configurator->getSmtpPort(),
-        configurator->getEmailLogin(),
-        configurator->getEmailPassword());
-    sender->setMessageHeaders("ESPWaga", configurator->getRecipients());
-    sender->configureNtpServer(configurator->getNtpServer());
-    interval = configurator->getIntervalSeconds() * 1000;
-    sender->connect();
-    scale.begin(DOUT, CLK);
-    scale.set_scale(calibration_factor);
-    scale.tare();
+    catch(...){
+        Serial.println("Unknown exception in setup");
+    }
 }
 
 void loop()
 {
-    // Serial.println(configurator->getIntervalSeconds());
-    Serial.println(scale.get_units(), 1);
-    unsigned long currentMillis = millis();
-    if ((currentMillis - previousMilis) >= interval)
+    try
     {
-        while (wifiMulti.run() != WL_CONNECTED)
+        unsigned long currentMillis = millis();
+
+        float mass = -scale.get_units();
+        Serial.println(mass);
+        if ((currentMillis - previousMilis) >= interval || (mass > treshold && tresholdReset))
         {
-            Serial.println("WiFi not connected!");
-            delay(200);
+            while (wifiMulti.run() != WL_CONNECTED)
+            {
+                Serial.println("WiFi not connected!");
+                delay(200);
+            }
+            
+
+            Serial.print("WiFi connected: ");
+            Serial.print(WiFi.SSID());
+            Serial.print(" ");
+            Serial.print(WiFi.RSSI());
+            Serial.print(" ");
+            Serial.println(WiFi.localIP());
+            previousMilis = currentMillis;
+            sender->connect();
+
+            mass = std::ceil(mass * 100.0) / 100.0;
+            std::string massStr = std::to_string(mass);
+            massStr = massStr.substr(0, massStr.find(".") + 3);
+            std::string mailBody = std::string();
+            mailBody.append("Masa: ").append(massStr);
+
+            sender->setMessageContent(String(mailBody.c_str()));
+            sender->sendMail();
+            sender->disconnect();
+            if(mass > treshold){
+                tresholdReset = false;
+            }
         }
-        float mass = scale.get_units();
-        mass = -std::ceil(mass * 100.0) / 100.0;
-        Serial.print("WiFi connected: ");
-        Serial.print(WiFi.SSID());
-        Serial.print(" ");
-        Serial.print(WiFi.RSSI());
-        Serial.print(" ");
-        Serial.println(WiFi.localIP());
-        previousMilis = currentMillis;
-        sender->connect();
-
-        std::string massStr = std::to_string(mass);
-        massStr = massStr.substr(0, massStr.find(".") + 3);
-        std::string mailBody = std::string();
-        mailBody.append("Masa: ").append(massStr);
-
-        sender->setMessageContent(String(mailBody.c_str()));
-        sender->sendMail();
+        if (mass < treshold - hysteresis){
+            tresholdReset = true;
+        }
+    }
+    catch(MailException e){
+        Serial.println(e.what());
+        Serial.println("Failed to send mail");
+    }
+    catch(...){
+        Serial.println("Unknown exception in loop");
     }
 }
