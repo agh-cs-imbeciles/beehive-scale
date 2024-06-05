@@ -202,7 +202,8 @@ String Configurator::getNtpServer()
     return this->ntpServer;
 }
 
-long Configurator::getThingSpeakChannelId(){
+long Configurator::getThingSpeakChannelId()
+{
     return this->thingSpeakChannelId;
 }
 

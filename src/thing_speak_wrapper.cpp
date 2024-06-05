@@ -9,11 +9,12 @@ ThingSpeakWrapper::ThingSpeakWrapper(long channelId, String APIKey)
     this->channelId = channelId;
     this->APIKey = APIKey;
 }
+
 void ThingSpeakWrapper::sendMassData(long field, float mass)
 {
-    
     Serial.println(this->channelId);
     Serial.println(this->APIKey);
+
     int code = ThingSpeak.writeField(this->channelId, 1, mass, this->APIKey.c_str());
     if (code != 200)
     {

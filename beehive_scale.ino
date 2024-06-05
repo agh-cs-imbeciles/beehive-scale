@@ -11,6 +11,7 @@
 #include "src/exception/mail_exception.hpp"
 #include "src/exception/thing_speak_exception.hpp"
 #include "src/thing_speak_wrapper.hpp"
+
 #define DOUT 13
 #define CLK 12
 
@@ -97,7 +98,7 @@ void loop()
 
         float mass = -scale.get_units();
         Serial.println(mass);
-        if  (mass > treshold && tresholdReset)
+        if (mass > treshold && tresholdReset)
         {
             while (wifiMulti.run() != WL_CONNECTED)
             {
@@ -123,12 +124,14 @@ void loop()
             sender->setMessageContent(String(mailBody.c_str()));
             sender->sendMail();
             sender->disconnect();
+
             if (mass > treshold)
             {
                 tresholdReset = false;
             }
         }
-        if((currentMillis - previousMilis) >= interval){
+        if ((currentMillis - previousMilis) >= interval)
+        {
             while (wifiMulti.run() != WL_CONNECTED)
             {
                 Serial.println("WiFi not connected!");
@@ -154,7 +157,7 @@ void loop()
         Serial.println(e.what());
         Serial.println("Failed to send mail");
     }
-    catch(ThingSpeakException e){
+    catch (ThingSpeakException e){
         Serial.println(e.what());
         Serial.println("Failed to send update on ThingSpeak");
     }
@@ -162,5 +165,4 @@ void loop()
     {
         Serial.println("Unknown exception in loop");
     }
-
 }

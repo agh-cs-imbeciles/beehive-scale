@@ -1,4 +1,5 @@
 #include "ArduinoJson.h"
+
 class ThingSpeakException : public std::exception
 {
 private:

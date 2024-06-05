@@ -31,6 +31,7 @@ private:
     String ntpServer;
     long thingSpeakChannelId;
     String thingSpeakApiKey;
+
     template <typename T>
     T throwJsonExceptionIfWrongField(JsonVariant value, String fieldName);
     void loadMassThreshold();
