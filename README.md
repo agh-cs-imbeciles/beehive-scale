@@ -41,7 +41,8 @@
     - [ArduinoJson](https://github.com/bblanchon/ArduinoJson/releases/tag/v7.0.4),
     - [ESP Mail Client](https://github.com/mobizt/ESP-Mail-Client/releases/tag/v3.4.19),
     - [HX711](https://github.com/bogde/HX711/releases/tag/0.7.5),
-    - [Vector](https://github.com/janelia-arduino/Vector/releases/tag/1.2.2).
+    - [Vector](https://github.com/janelia-arduino/Vector/releases/tag/1.2.2),
+    - [ThingSpeak](https://github.com/mathworks/thingspeak-arduino/releases/tag/2.0.0).
 6. Copy file **config/esp32_template.json** into **config/esp32.json**. Then set proper values in this file.
 7. Copy **.env_template** into **.env** and set `PORT` to port to which ESP32 is connected. _(It is rather unlikely that you will have to change other variables, but it is possible)_
 8. Verify files (press `CTRL + ALT + R` in **beehive_scale.ino**).

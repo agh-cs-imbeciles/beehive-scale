@@ -48,14 +48,13 @@ void Configurator::loadNetworksArray()
     for (int i = 0; i < jsonArray.size(); i++)
     {
         s = "ssid";
-        String ssid = throwJsonExceptionIfWrongField<const char*>(jsonArray[i][s], s);
+        String ssid = throwJsonExceptionIfWrongField<const char *>(jsonArray[i][s], s);
         s = "password";
-        String password = throwJsonExceptionIfWrongField<const char*>(jsonArray[i][s], s);
+        String password = throwJsonExceptionIfWrongField<const char *>(jsonArray[i][s], s);
         array.push_back(
             WiFiPass{
                 ssid,
-                password
-            });
+                password});
     }
     this->networksArray = array;
 }
@@ -68,7 +67,7 @@ void Configurator::loadRecipients()
     JsonArray jsonArray = throwJsonExceptionIfWrongField<JsonArray>(document[s], s);
     for (int i = 0; i < jsonArray.size(); i++)
     {
-        String recipient = throwJsonExceptionIfWrongField<const char*>(jsonArray[i], s);
+        String recipient = throwJsonExceptionIfWrongField<const char *>(jsonArray[i], s);
         array.push_back(recipient);
     }
     this->recipients = array;
@@ -77,7 +76,7 @@ void Configurator::loadRecipients()
 void Configurator::loadSmtpHost()
 {
     String s = "smtpHost";
-    this->smtpHost = throwJsonExceptionIfWrongField<const char*>(document[s], s);
+    this->smtpHost = throwJsonExceptionIfWrongField<const char *>(document[s], s);
 }
 
 void Configurator::loadSmtpPort()
@@ -89,19 +88,31 @@ void Configurator::loadSmtpPort()
 void Configurator::loadEmailLogin()
 {
     String s = "emailLogin";
-    this->emailLogin = throwJsonExceptionIfWrongField<const char*>(document[s], s);
+    this->emailLogin = throwJsonExceptionIfWrongField<const char *>(document[s], s);
 }
 
 void Configurator::loadEmailPassword()
 {
     String s = "emailPassword";
-    this->emailPassword = throwJsonExceptionIfWrongField<const char*>(document[s], s);
+    this->emailPassword = throwJsonExceptionIfWrongField<const char *>(document[s], s);
 }
 
 void Configurator::loadNtpServer()
 {
     String s = "ntpServer";
-    this->ntpServer = throwJsonExceptionIfWrongField<const char*>(document[s], s);
+    this->ntpServer = throwJsonExceptionIfWrongField<const char *>(document[s], s);
+}
+
+void Configurator::loadThingSpeakChannelId()
+{
+    String s = "thingSpeakChannelId";
+    this->thingSpeakChannelId = throwJsonExceptionIfWrongField<long>(document[s], s);
+}
+
+void Configurator::loadThingSpeakApiKey()
+{
+    String s = "thingSpeakApiKey";
+    this->thingSpeakApiKey = throwJsonExceptionIfWrongField<const char *>(document[s], s);
 }
 
 Configurator::Configurator(const String filename)
@@ -137,6 +148,8 @@ void Configurator::loadConfig()
     this->loadEmailLogin();
     this->loadEmailPassword();
     this->loadNtpServer();
+    this->loadThingSpeakChannelId();
+    this->loadThingSpeakApiKey();
 }
 
 double Configurator::getMassThreshold()
@@ -187,4 +200,14 @@ String Configurator::getEmailPassword()
 String Configurator::getNtpServer()
 {
     return this->ntpServer;
+}
+
+long Configurator::getThingSpeakChannelId()
+{
+    return this->thingSpeakChannelId;
+}
+
+String Configurator::getThingSpeakApiKey()
+{
+    return this->thingSpeakApiKey;
 }
