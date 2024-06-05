@@ -43,7 +43,7 @@
     - [HX711](https://github.com/bogde/HX711/releases/tag/0.7.5),
     - [Vector](https://github.com/janelia-arduino/Vector/releases/tag/1.2.2).
 6. Copy file **config/esp32_template.json** into **config/esp32.json**. Then set proper values in this file.
-7. Run `. activate.sh` _(it is rather unlikely that you will have to change paths in this file, but it is possible)_.
+7. Copy **.env_template** into **.env** and set `PORT` to port to which ESP32 is connected. _(It is rather unlikely that you will have to change other variables, but it is possible)_
 8. Verify files (press `CTRL + ALT + R` in **beehive_scale.ino**).
 9. Upload files (press `CTRL + ALT + U` in **beehive_scale.ino**).
 10. You can now open _Serial Monitor_ and watch logs.
