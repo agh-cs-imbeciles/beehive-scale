@@ -29,6 +29,8 @@ private:
     String emailLogin;
     String emailPassword;
     String ntpServer;
+    long thingSpeakChannelId;
+    String thingSpeakApiKey;
     template <typename T>
     T throwJsonExceptionIfWrongField(JsonVariant value, String fieldName);
     void loadMassThreshold();
@@ -41,6 +43,8 @@ private:
     void loadEmailLogin();
     void loadEmailPassword();
     void loadNtpServer();
+    void loadThingSpeakChannelId();
+    void loadThingSpeakApiKey();
 
 public:
     Configurator(const String filename);
@@ -56,4 +60,6 @@ public:
     String getEmailLogin();
     String getEmailPassword();
     String getNtpServer();
+    long getThingSpeakChannelId();
+    String getThingSpeakApiKey();
 };

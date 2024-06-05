@@ -15,5 +15,7 @@
   "smtpPort": "2137",
   "emailLogin": "mail@mail.pl",
   "emailPassword": "pass",
-  "ntpServer": "server"
+  "ntpServer": "server",
+  "thingSpeakChannelId": 69,
+  "thingSpeakApiKey": "420"
 }
